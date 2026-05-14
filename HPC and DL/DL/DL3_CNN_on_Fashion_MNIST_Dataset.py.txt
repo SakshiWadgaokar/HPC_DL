@@ -1,0 +1,169 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.datasets import fashion_mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Flatten, Dense, Dropout, Input
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.optimizers import Adam
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+print("TensorFlow Version:", tf.__version__)
+
+# Constants
+IMG_ROWS = 28
+IMG_COLS = 28
+NUM_CLASSES = 10
+BATCH_SIZE = 128
+EPOCHS = 15
+
+# Load Dataset
+print("\nLoading Fashion MNIST Dataset...\n")
+
+(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+
+print("x_train shape:", x_train.shape)
+print("y_train shape:", y_train.shape)
+print("x_test shape:", x_test.shape)
+print("y_test shape:", y_test.shape)
+
+# Class Labels
+class_names = [
+    'T-shirt/top',
+    'Trouser',
+    'Pullover',
+    'Dress',
+    'Coat',
+    'Sandal',
+    'Shirt',
+    'Sneaker',
+    'Bag',
+    'Ankle boot'
+]
+
+# Show Sample Images
+plt.figure(figsize=(10,10))
+
+for i in range(25):
+    plt.subplot(5,5,i+1)
+    plt.xticks([])
+    plt.yticks([])
+    plt.grid(False)
+
+    plt.imshow(x_train[i], cmap=plt.cm.binary)
+
+    plt.xlabel(class_names[y_train[i]])
+
+plt.show()
+
+# Reshape Dataset
+x_train = x_train.reshape(
+    x_train.shape[0],
+    IMG_ROWS,
+    IMG_COLS,
+    1
+)
+
+x_test = x_test.reshape(
+    x_test.shape[0],
+    IMG_ROWS,
+    IMG_COLS,
+    1
+)
+
+# Normalize
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+
+# One Hot Encoding
+y_train = to_categorical(y_train, NUM_CLASSES)
+y_test = to_categorical(y_test, NUM_CLASSES)
+
+# Build CNN Model
+model = Sequential([
+
+    Input(shape=(28,28,1)),
+
+    Conv2D(
+        32,
+        kernel_size=(3,3),
+        activation='relu',
+        padding='same'
+    ),
+
+    MaxPooling2D(pool_size=(2,2)),
+
+    Conv2D(
+        64,
+        kernel_size=(3,3),
+        activation='relu',
+        padding='same'
+    ),
+
+    MaxPooling2D(pool_size=(2,2)),
+
+    Flatten(),
+
+    Dense(128, activation='relu'),
+
+    Dropout(0.5),
+
+    Dense(NUM_CLASSES, activation='softmax')
+])
+
+# Compile Model
+model.compile(
+    optimizer=Adam(learning_rate=0.001),
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# Model Summary
+model.summary()
+
+# Train Model
+history = model.fit(
+    x_train,
+    y_train,
+    epochs=EPOCHS,
+    batch_size=BATCH_SIZE,
+    validation_data=(x_test, y_test),
+    verbose=1
+)
+
+# Evaluate Model
+loss, accuracy = model.evaluate(
+    x_test,
+    y_test,
+    verbose=0
+)
+
+print("\nTest Loss:", loss)
+print("Test Accuracy:", accuracy * 100)
+
+# Accuracy Graph
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+
+plt.title('Model Accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+
+plt.legend(['Train', 'Validation'])
+
+plt.show()
+
+# Loss Graph
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+
+plt.title('Model Loss')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+
+plt.legend(['Train', 'Validation'])
+
+plt.show()

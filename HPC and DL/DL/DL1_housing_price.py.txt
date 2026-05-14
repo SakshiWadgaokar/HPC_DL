@@ -1,0 +1,59 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load Dataset
+data = pd.read_csv('/content/housing.csv')
+
+# Show first rows
+print(data.head())
+
+# Dataset information
+print(data.info())
+
+# Remove Address column (text column)
+data = data.drop('Address', axis=1)
+
+# Input Features
+x = data.drop('Price', axis=1).values
+
+# Output Target
+y = data['Price'].values
+
+# Split Dataset
+from sklearn.model_selection import train_test_split
+
+xtrain, xtest, ytrain, ytest = train_test_split(
+    x,
+    y,
+    test_size=0.2,
+    random_state=0
+)
+
+# Import Model
+from sklearn.linear_model import LinearRegression
+
+# Create Model
+regressor = LinearRegression()
+
+# Train Model
+regressor.fit(xtrain, ytrain)
+
+# Predict
+y_pred = regressor.predict(xtest)
+
+# Graph
+plt.scatter(ytest, y_pred, c='green')
+
+plt.xlabel('Actual Price')
+plt.ylabel('Predicted Price')
+plt.title('Linear Regression')
+
+plt.show()
+
+# Error Calculation
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
+
+print("MSE:", mean_squared_error(ytest, y_pred))
+print("MAE:", mean_absolute_error(ytest, y_pred))
