@@ -1,0 +1,351 @@
+# STEP 1 — Import Libraries
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+
+# STEP 2 — Load Dataset
+
+dataset = pd.read_csv('/content/HousingData.csv')
+
+
+# STEP 3 — Display Dataset
+
+print(dataset.head())
+
+
+# STEP 4 — Check Dataset Shape
+
+print(dataset.shape)
+
+
+# STEP 5 — Check Missing Values
+
+print(dataset.isnull().sum())
+
+
+# STEP 6 — Remove Missing Values
+
+dataset = dataset.dropna()
+
+
+# STEP 7 — Display Column Names
+
+print(dataset.columns)
+
+
+# STEP 8 — Separate Input and Output Variables
+
+X = dataset.drop('MEDV', axis=1)
+y = dataset['MEDV']
+
+
+# STEP 9 — Split Dataset into Training and Testing
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+
+# STEP 10 — Normalize the Data
+
+scaler = StandardScaler()
+
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+
+# STEP 11 — Build Deep Neural Network Model
+
+model = Sequential()
+
+# Input Layer + Hidden Layer 1
+model.add(Dense(64, activation='relu', input_shape=(13,)))
+
+# Hidden Layer 2
+model.add(Dense(32, activation='relu'))
+
+# Hidden Layer 3
+model.add(Dense(16, activation='relu'))
+
+# Output Layer
+model.add(Dense(1))
+
+
+# STEP 12 — Compile Model
+
+model.compile(
+    optimizer='adam',
+    loss='mse',
+    metrics=['mae']
+)
+
+
+# STEP 13 — Display Model Summary
+
+model.summary()
+
+
+# STEP 14 — Train the Model
+
+history = model.fit(
+    X_train,
+    y_train,
+    epochs=100,
+    batch_size=16,
+    validation_split=0.2
+)
+
+
+# STEP 15 — Evaluate Model
+
+loss, mae = model.evaluate(X_test, y_test)
+
+print("Loss:", loss)
+print("MAE:", mae)
+
+
+# STEP 16 — Predict House Prices
+
+predictions = model.predict(X_test)
+
+print("Predicted Price:", predictions[0])
+print("Actual Price:", y_test.iloc[0])
+
+
+# STEP 17 — Plot Training and Validation Loss Graph
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+
+plt.title('Model Loss')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+
+plt.legend(['Training Loss', 'Validation Loss'])
+
+plt.show()
+
+
+# STEP 18 — Plot Actual vs Predicted Prices Graph
+
+plt.scatter(y_test, predictions)
+
+plt.xlabel("Actual Prices")
+plt.ylabel("Predicted Prices")
+
+plt.title("Actual vs Predicted Prices")
+
+plt.show()
+
+
+
+# Theory for Answer Sheet
+
+## Linear Regression using Deep Neural Network for Boston Housing Price Prediction
+
+You can directly write this in your practical file or answer sheet.
+
+---
+
+# Aim
+
+To implement Boston Housing Price Prediction using Linear Regression with Deep Neural Network using TensorFlow and Keras.
+
+---
+
+# Theory
+
+## Introduction
+
+House price prediction is a regression problem where the output is a continuous numerical value. In this experiment, a Deep Neural Network (DNN) is used to predict housing prices using the Boston Housing Dataset.
+
+A Deep Neural Network contains multiple hidden layers that help in learning complex relationships between input features and output values. The model is trained using historical housing data and predicts house prices based on various factors such as crime rate, number of rooms, tax rate, and other housing features.
+
+---
+
+# Boston Housing Dataset
+
+The Boston Housing Dataset contains information collected by the U.S Census Service concerning housing in Boston suburbs.
+
+The dataset contains:
+
+* 506 instances (rows)
+* 13 input features
+* 1 output feature (house price)
+
+---
+
+# Features of Dataset
+
+Some important features are:
+
+| Feature | Description                        |
+| ------- | ---------------------------------- |
+| CRIM    | Crime rate                         |
+| RM      | Average number of rooms            |
+| TAX     | Property tax rate                  |
+| PTRATIO | Pupil-teacher ratio                |
+| LSTAT   | Lower status population percentage |
+| MEDV    | Median house price                 |
+
+---
+
+# Deep Neural Network
+
+A Deep Neural Network is an Artificial Neural Network having multiple hidden layers between input and output layers.
+
+The network used contains:
+
+* Input Layer
+* Hidden Layer 1
+* Hidden Layer 2
+* Hidden Layer 3
+* Output Layer
+
+---
+
+# Activation Function
+
+ReLU activation function is used in hidden layers.
+
+ReLU formula:
+f(x)=\max(0,x)
+
+It converts negative values into zero and improves training speed.
+
+---
+
+# Loss Function
+
+Mean Squared Error (MSE) is used as loss function.
+
+Formula:
+MSE=\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2
+
+Where:
+
+* ( y_i ) = Actual value
+* ( \hat{y}_i ) = Predicted value
+
+MSE calculates the average squared difference between actual and predicted values.
+
+---
+
+# Optimizer
+
+Adam optimizer is used to update neural network weights efficiently during training.
+
+Advantages:
+
+* Faster convergence
+* Efficient memory usage
+* Adaptive learning rate
+
+---
+
+# Steps Performed
+
+## 1. Import Libraries
+
+Required libraries such as NumPy, Pandas, TensorFlow, Matplotlib, and Scikit-learn are imported.
+
+---
+
+## 2. Load Dataset
+
+Boston Housing dataset is loaded using Pandas.
+
+---
+
+## 3. Data Preprocessing
+
+* Missing values are checked and removed.
+* Input and output variables are separated.
+* Data is normalized using StandardScaler.
+
+Normalization formula:
+
+genui{"math_block_widget_always_prefetch_v2":{"content":"z=\frac{x-\mu}{\sigma}"}}
+
+---
+
+## 4. Train-Test Split
+
+Dataset is divided into:
+
+* 80% training data
+* 20% testing data
+
+---
+
+## 5. Build Neural Network
+
+Sequential model is created using Dense layers.
+
+Architecture:
+
+* 64 neurons
+* 32 neurons
+* 16 neurons
+* 1 output neuron
+
+---
+
+## 6. Compile Model
+
+Model is compiled using:
+
+* Adam optimizer
+* MSE loss function
+* MAE metric
+
+MAE formula:
+MAE=\frac{1}{n}\sum_{i=1}^{n}|y_i-\hat{y}_i|
+
+---
+
+## 7. Train Model
+
+Model is trained using:
+
+* Epochs = 100
+* Batch Size = 16
+
+---
+
+## 8. Evaluate Model
+
+The model performance is evaluated using:
+
+* Loss
+* Mean Absolute Error
+
+---
+
+## 9. Predict Prices
+
+The trained model predicts housing prices for testing data.
+
+---
+
+# Result
+
+The Deep Neural Network model was successfully implemented for Boston Housing Price Prediction. The model was trained and evaluated successfully, and predicted housing prices with good accuracy.
+
+---
+
+# Conclusion
+
+Thus, Boston Housing Price Prediction using Deep Neural Network was implemented successfully using TensorFlow and Keras. The model learned the relationship between housing features and house prices effectively and produced accurate predictions.

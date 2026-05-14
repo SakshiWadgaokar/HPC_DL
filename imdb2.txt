@@ -1,0 +1,410 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load IMDB Dataset
+from tensorflow.keras.datasets import imdb
+
+(train_data, train_labels), (test_data, test_labels) = imdb.load_data(num_words=10000)
+
+print("Training Samples:", len(train_data))
+print("Testing Samples:", len(test_data))
+
+# Decode Review Example
+word_index = imdb.get_word_index()
+
+reverse_word_index = dict(
+    [(value, key) for (key, value) in word_index.items()]
+)
+
+decoded_review = ' '.join(
+    [reverse_word_index.get(i - 3, '?') for i in train_data[0]]
+)
+
+print(decoded_review)
+
+# Convert Reviews into Vectors
+def vectorize_sequences(sequences, dimension=10000):
+
+    results = np.zeros((len(sequences), dimension))
+
+    for i, sequence in enumerate(sequences):
+        results[i, sequence] = 1
+
+    return results
+
+x_train = vectorize_sequences(train_data)
+x_test = vectorize_sequences(test_data)
+
+# Convert Labels
+y_train = np.asarray(train_labels).astype('float32')
+y_test = np.asarray(test_labels).astype('float32')
+
+# Build Model
+from tensorflow.keras import models
+from tensorflow.keras import layers
+
+model = models.Sequential()
+
+model.add(layers.Dense(
+    16,
+    activation='relu',
+    input_shape=(10000,)
+))
+
+model.add(layers.Dense(
+    16,
+    activation='relu'
+))
+
+model.add(layers.Dense(
+    1,
+    activation='sigmoid'
+))
+
+# Compile Model
+from tensorflow.keras import optimizers
+from tensorflow.keras import losses
+from tensorflow.keras import metrics
+
+model.compile(
+    optimizer=optimizers.RMSprop(learning_rate=0.001),
+    loss=losses.binary_crossentropy,
+    metrics=['accuracy']
+)
+
+# Validation Data
+x_val = x_train[:10000]
+partial_x_train = x_train[10000:]
+
+y_val = y_train[:10000]
+partial_y_train = y_train[10000:]
+
+# Train Model
+history = model.fit(
+    partial_x_train,
+    partial_y_train,
+    epochs=20,
+    batch_size=512,
+    validation_data=(x_val, y_val)
+)
+
+# Training History
+history_dict = history.history
+
+# Plot Loss Graph
+loss_values = history_dict['loss']
+val_loss_values = history_dict['val_loss']
+
+epochs = range(1, len(loss_values) + 1)
+
+plt.plot(
+    epochs,
+    loss_values,
+    'bo',
+    label='Training Loss'
+)
+
+plt.plot(
+    epochs,
+    val_loss_values,
+    'b',
+    label='Validation Loss'
+)
+
+plt.title('Training and Validation Loss')
+
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+
+plt.legend()
+
+plt.show()
+
+# Plot Accuracy Graph
+acc_values = history_dict['accuracy']
+val_acc_values = history_dict['val_accuracy']
+
+plt.plot(
+    epochs,
+    acc_values,
+    'ro',
+    label='Training Accuracy'
+)
+
+plt.plot(
+    epochs,
+    val_acc_values,
+    'r',
+    label='Validation Accuracy'
+)
+
+plt.title('Training and Validation Accuracy')
+
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+
+plt.legend()
+
+plt.show()
+
+# Train Again for Final Model
+model.fit(
+    partial_x_train,
+    partial_y_train,
+    epochs=3,
+    batch_size=512,
+    validation_data=(x_val, y_val)
+)
+
+# Predictions
+result = model.predict(x_test)
+
+print(result)
+
+# Convert Probabilities into 0 or 1
+y_pred = np.zeros(len(result))
+
+for i, score in enumerate(result):
+
+    y_pred[i] = 1 if score > 0.5 else 0
+
+# Calculate Error
+from sklearn.metrics import mean_absolute_error
+
+mae = mean_absolute_error(y_pred, y_test)
+
+print("Mean Absolute Error:", mae)
+
+
+
+
+
+
+# Aim
+
+To implement sentiment classification on the IMDB movie review dataset using a Deep Neural Network (DNN) and classify reviews as positive or negative.
+
+---
+
+# Theory
+
+## Introduction
+
+Sentiment analysis is a Natural Language Processing (NLP) technique used to determine whether a text expresses positive or negative sentiment. In this experiment, a Deep Neural Network is trained on the IMDB movie review dataset to classify movie reviews based on their sentiment.
+
+The IMDB dataset contains thousands of movie reviews labeled as:
+
+* Positive Review
+* Negative Review
+
+The neural network learns patterns in text data and predicts the sentiment of unseen reviews.
+
+---
+
+# IMDB Dataset
+
+The IMDB dataset is a benchmark dataset for binary sentiment classification.
+
+Dataset contains:
+
+* 25,000 training reviews
+* 25,000 testing reviews
+
+Each review is represented as a sequence of integers where each integer corresponds to a specific word in the vocabulary.
+
+Only the top 10,000 most frequent words are used.
+
+---
+
+# Deep Neural Network
+
+A Deep Neural Network is an Artificial Neural Network having multiple hidden layers that help in learning complex patterns from data.
+
+The network used contains:
+
+* Input Layer
+* Hidden Layer 1
+* Hidden Layer 2
+* Output Layer
+
+---
+
+# Data Preprocessing
+
+The movie reviews are initially stored as sequences of integers. These sequences are converted into vectors using one-hot encoding.
+
+Each review becomes a vector of size 10,000.
+
+Example:
+
+* If a word exists in review → value becomes 1
+* Otherwise → value remains 0
+
+---
+
+# Activation Functions
+
+## ReLU Activation Function
+
+ReLU is used in hidden layers.
+
+Formula:
+f(x)=\max(0,x)
+
+Advantages:
+
+* Faster training
+* Removes vanishing gradient problem
+* Computationally efficient
+
+---
+
+## Sigmoid Activation Function
+
+Sigmoid is used in output layer for binary classification.
+
+Formula:
+\sigma(x)=\frac{1}{1+e^{-x}}
+
+Output range:
+
+* 0 → Negative sentiment
+* 1 → Positive sentiment
+
+---
+
+# Loss Function
+
+Binary Crossentropy loss is used because this is a binary classification problem.
+
+Formula:
+L=-\frac{1}{N}\sum_{i=1}^{N}[y_i\log(\hat{y_i})+(1-y_i)\log(1-\hat{y_i})]
+
+Where:
+
+* ( y_i ) = Actual label
+* ( \hat{y_i} ) = Predicted label
+
+---
+
+# Optimizer
+
+RMSprop optimizer is used for updating weights during training.
+
+Advantages:
+
+* Adaptive learning rate
+* Faster convergence
+* Efficient for deep learning models
+
+---
+
+# Steps Performed
+
+## 1. Import Libraries
+
+Required libraries such as NumPy, Matplotlib, TensorFlow, and Keras are imported.
+
+---
+
+## 2. Load IMDB Dataset
+
+The IMDB dataset is loaded using TensorFlow Keras datasets module.
+
+---
+
+## 3. Decode Review
+
+The encoded integer sequences are converted back into readable text reviews using the word index dictionary.
+
+---
+
+## 4. Vectorization
+
+Reviews are converted into one-hot encoded vectors of dimension 10,000.
+
+---
+
+## 5. Convert Labels
+
+Labels are converted into float32 format for neural network processing.
+
+---
+
+## 6. Build Neural Network
+
+A Sequential model is created with:
+
+* Two hidden layers containing 16 neurons each
+* One output layer containing 1 neuron
+
+---
+
+## 7. Compile Model
+
+The model is compiled using:
+
+* RMSprop optimizer
+* Binary Crossentropy loss
+* Accuracy metric
+
+---
+
+## 8. Validation Split
+
+Training data is divided into:
+
+* Training dataset
+* Validation dataset
+
+---
+
+## 9. Train Model
+
+The model is trained for 20 epochs with batch size 512.
+
+---
+
+## 10. Plot Graphs
+
+Graphs for:
+
+* Training vs Validation Loss
+* Training vs Validation Accuracy
+
+are plotted to analyze model performance.
+
+---
+
+## 11. Prediction
+
+The trained model predicts probabilities for test reviews.
+
+If probability > 0.5:
+
+* Positive Review (1)
+
+Else:
+
+* Negative Review (0)
+
+---
+
+## 12. Error Calculation
+
+Mean Absolute Error (MAE) is calculated to measure prediction error.
+
+Formula:
+MAE=\frac{1}{n}\sum_{i=1}^{n}|y_i-\hat{y}_i|
+
+---
+
+# Result
+
+The Deep Neural Network model was successfully implemented on the IMDB movie review dataset. The model classified movie reviews into positive and negative sentiments with good accuracy.
+
+---
+
+# Conclusion
+
+Thus, sentiment classification using Deep Neural Network was implemented successfully using the IMDB dataset. The model learned textual patterns effectively and achieved accurate sentiment prediction for movie reviews.

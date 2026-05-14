@@ -1,0 +1,222 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.datasets import fashion_mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Flatten, Dense, Dropout, Input
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.optimizers import Adam
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+print("TensorFlow Version:", tf.__version__)
+
+# Constants
+IMG_ROWS = 28
+IMG_COLS = 28
+NUM_CLASSES = 10
+BATCH_SIZE = 128
+EPOCHS = 15
+
+# Load Dataset
+print("\nLoading Fashion MNIST Dataset...\n")
+
+(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+
+print("x_train shape:", x_train.shape)
+print("y_train shape:", y_train.shape)
+print("x_test shape:", x_test.shape)
+print("y_test shape:", y_test.shape)
+
+# Class Labels
+class_names = [
+    'T-shirt/top',
+    'Trouser',
+    'Pullover',
+    'Dress',
+    'Coat',
+    'Sandal',
+    'Shirt',
+    'Sneaker',
+    'Bag',
+    'Ankle boot'
+]
+
+# Show Sample Images
+plt.figure(figsize=(10,10))
+
+for i in range(25):
+    plt.subplot(5,5,i+1)
+    plt.xticks([])
+    plt.yticks([])
+    plt.grid(False)
+
+    plt.imshow(x_train[i], cmap=plt.cm.binary)
+
+    plt.xlabel(class_names[y_train[i]])
+
+plt.show()
+
+# Reshape Dataset
+x_train = x_train.reshape(
+    x_train.shape[0],
+    IMG_ROWS,
+    IMG_COLS,
+    1
+)
+
+x_test = x_test.reshape(
+    x_test.shape[0],
+    IMG_ROWS,
+    IMG_COLS,
+    1
+)
+
+# Normalize
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+
+# One Hot Encoding
+y_train = to_categorical(y_train, NUM_CLASSES)
+y_test = to_categorical(y_test, NUM_CLASSES)
+
+# Build CNN Model
+model = Sequential([
+
+    Input(shape=(28,28,1)),
+
+    Conv2D(
+        32,
+        kernel_size=(3,3),
+        activation='relu',
+        padding='same'
+    ),
+
+    MaxPooling2D(pool_size=(2,2)),
+
+    Conv2D(
+        64,
+        kernel_size=(3,3),
+        activation='relu',
+        padding='same'
+    ),
+
+    MaxPooling2D(pool_size=(2,2)),
+
+    Flatten(),
+
+    Dense(128, activation='relu'),
+
+    Dropout(0.5),
+
+    Dense(NUM_CLASSES, activation='softmax')
+])
+
+# Compile Model
+model.compile(
+    optimizer=Adam(learning_rate=0.001),
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# Model Summary
+model.summary()
+
+# Train Model
+history = model.fit(
+    x_train,
+    y_train,
+    epochs=EPOCHS,
+    batch_size=BATCH_SIZE,
+    validation_data=(x_test, y_test),
+    verbose=1
+)
+
+# Evaluate Model
+loss, accuracy = model.evaluate(
+    x_test,
+    y_test,
+    verbose=0
+)
+
+print("\nTest Loss:", loss)
+print("Test Accuracy:", accuracy * 100)
+
+# Accuracy Graph
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+
+plt.title('Model Accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+
+plt.legend(['Train', 'Validation'])
+
+plt.show()
+
+# Loss Graph
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+
+plt.title('Model Loss')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+
+plt.legend(['Train', 'Validation'])
+
+plt.show()
+
+Here’s a structured theory write‑up you can adapt directly into your answersheet. I’ll break it down into clear sections so it reads like a proper explanation of your code and experiment:
+
+---
+
+## 📘 Theory of CNN on Fashion MNIST
+
+### 1. **Dataset Overview**
+- The Fashion MNIST dataset is a benchmark for image classification, consisting of **28×28 grayscale images** of clothing items across **10 categories** (e.g., T-shirt, trouser, sneaker).
+- It replaces the traditional MNIST digits dataset to provide a more challenging, realistic classification task.
+
+### 2. **Preprocessing**
+- **Reshaping:** Images are reshaped into 4D tensors `(samples, rows, cols, channels)` to fit CNN input requirements.
+- **Normalization:** Pixel values are scaled to the range `[0,1]` for faster convergence.
+- **One-hot encoding:** Labels are converted into categorical vectors so the model can output probabilities for each class.
+
+### 3. **Convolutional Neural Network (CNN)**
+CNNs are specialized deep learning models for image recognition. The architecture used here includes:
+
+- **Input Layer:** Accepts images of shape `(28,28,1)`.
+- **Convolution Layers:**  
+  - First Conv2D with 32 filters of size `(3×3)` extracts low-level features (edges, textures).  
+  - Second Conv2D with 64 filters captures more complex patterns.
+- **Pooling Layers:** MaxPooling reduces spatial dimensions, lowering computation and controlling overfitting.
+- **Flatten Layer:** Converts 2D feature maps into a 1D vector for dense layers.
+- **Dense Layer:** Fully connected layer with 128 neurons learns high-level representations.
+- **Dropout:** Randomly drops 50% of neurons during training to prevent overfitting.
+- **Output Layer:** Dense layer with 10 neurons (softmax activation) outputs class probabilities.
+
+### 4. **Model Compilation**
+- **Optimizer:** Adam optimizer with learning rate 0.001 ensures efficient gradient descent.
+- **Loss Function:** Categorical crossentropy measures the difference between predicted and true probability distributions.
+- **Metrics:** Accuracy is tracked during training and evaluation.
+
+### 5. **Training and Evaluation**
+- The model is trained for **15 epochs** with a batch size of 128.
+- Training history is stored to plot accuracy and loss curves.
+- Final evaluation on the test set provides **loss** and **accuracy** metrics.
+
+### 6. **Visualization**
+- **Sample Images:** Displayed with class labels to understand dataset distribution.
+- **Accuracy Graph:** Shows improvement in training and validation accuracy over epochs.
+- **Loss Graph:** Indicates how well the model minimizes error during training.
+
+---
+
+## ✨ Key Points for Answersheet
+- CNNs are effective for image classification due to their ability to automatically learn spatial hierarchies of features.  
+- Fashion MNIST provides a practical benchmark beyond handwritten digits.  
+- Preprocessing (reshaping, normalization, one-hot encoding) is essential for efficient training.  
+- The architecture balances feature extraction (Conv + Pooling) and classification (Dense + Dropout).  
+- Graphs of accuracy and loss demonstrate model performance and generalization ability.  
+
